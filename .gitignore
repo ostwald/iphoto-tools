@@ -1,0 +1,7 @@
+*.pyc
+*(Autosaved)*
+*~
+#*
+data
+tmp
+recovery_tools

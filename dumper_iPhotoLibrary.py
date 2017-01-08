@@ -4,8 +4,7 @@ from iPhoto import IPhotoDict
 from iPhotoItem import IPhotoItem
 from album import Album
 from roll import Roll
-from iPhoto import globals
-from abstract_iPhotoLibrary import AbstractIPhotoLibrary
+from iPhoto import globals, IPhotoLibrary_API
 
 import codecs
 
@@ -72,7 +71,7 @@ class Dumper:
 				print '- %s' % w
 
 
-class DumperIPhotoLibrary (AbstractIPhotoLibrary, Dumper):
+class DumperIPhotoLibrary (IPhotoLibrary_API, Dumper):
 	"""
 	populates  (items, albums, rolls, rollMap)
 	from iPhoto source XML file (plist)
@@ -82,18 +81,27 @@ class DumperIPhotoLibrary (AbstractIPhotoLibrary, Dumper):
 		tics = time.time()
 		self.name = os.path.splitext (os.path.basename (path))[0]
 		self.plist = PlistParser(path).plist
-		self.items = IPhotoDict(self.plist['Master Image List'])
+		self.items_data = IPhotoDict(self.plist['Master Image List'])
+		# self.show_items_data()
+		self.items = {}
+		for item_id in self.items_data.keys():
+			self.items[item_id] = IPhotoItem (item_id, self.items_data[item_id], self)
 		self.albums = map (lambda x: Album(x, self), self.plist['List of Albums'])
 		self.rolls = map (lambda x: Roll(x,self), self.plist['List of Rolls'])
+
 		self.rollMap = IPhotoDict()
 		for roll in self.rolls:
 			self.rollMap[roll.id] = roll
 		print '\nIPhotoLibrary instantiated - %.2f sec' % (time.time() - tics)
 
+	def show_items_data(self):
+		for key in self.items_data.keys():
+			print '- %s: %s' % (key, self.items_data[key])
 
 if __name__ == '__main__':
 
-	data_file = globals.jloAlbum_plist
+	# data_file = globals.videoStorage_plist
+	data_file = globals.purgAlbum_plist
 
 	lib = DumperIPhotoLibrary (data_file)
 	# lib.reportRolls()

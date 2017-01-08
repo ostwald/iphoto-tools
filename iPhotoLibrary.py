@@ -4,13 +4,13 @@ from iPhoto import IPhotoDict
 from iPhotoItem import IPhotoItem
 from album import Album
 from roll import RollRecord
-from iPhoto import globals, AbstractIPhotoLibrary
+from iPhoto import globals, IPhotoLibrary_API
 from tabdelimited import TabDelimitedFile, TabDelimitedRecord
 from roll import RollItemsReader
 import globals
 
 
-class IPhotoLibrary (AbstractIPhotoLibrary, TabDelimitedFile):
+class IPhotoLibrary (IPhotoLibrary_API, TabDelimitedFile):
 	"""
 	read data from spreadsheets (created by DumperIPhotoLibrary)
 
@@ -96,8 +96,7 @@ if __name__ == '__main__':
 	data = 'jloAlbumData'
 	# data = 'purgAlbumData'
 	# data = 'mediaAlbumData'
-	data_dir = '/Users/ostwald/tmp/iPhotoLibrary_XLS_Database'
-	data_file = os.path.join (data_dir, data, data + '.txt')
+	data_file = os.path.join (globals.REPO_BASE, data, data + '.txt')
 
 	lib = IPhotoLibrary (data_file)
 	lib.reportRolls(lib.rolls[:10])

@@ -1,6 +1,6 @@
 __author__ = 'ostwald'
 
-import os, sys, datetime
+import os, sys, datetime, re
 from UserDict import UserDict
 
 # IPh0toItem MODEL - used by dumper and readers
@@ -10,16 +10,29 @@ IPHOTO_ITEM_ATTRS = ['mediaType', 'caption', 'comment', 'id', 'date', 'path', 't
 ROLL_ATTRS = ['name', 'id', 'start', 'end', 'size', 'comment']
 
 # where we read and write iPhotoLibrary rep as tabDelimited
-REPO_BASE = '/Users/ostwald/tmp/iPhotoLibrary_XLS_Database'
+# REPO_BASE = '/Users/ostwald/tmp/iPhotoLibrary_XLS_Database'
+REPO_BASE = '/Users/ostwald/devel/iPhoto/iPhotoLibrary_XLS_Database/'
 
 # Source iPhotoLibrary data as XML (plist)
 albumData_dir = '/Users/ostwald/devel/python/iPhoto/data/xml'
 
 videoStorage_plist = os.path.join (albumData_dir, 'videoStorageData.xml')
-mediaAlbum_plist = os.path.join (albumData_dir, 'mediaAlbumData.xml')
+mediaAlbum_1_plist = os.path.join (albumData_dir, 'mediaAlbumData_1.xml')
+mediaAlbum_2_plist = os.path.join (albumData_dir, 'mediaAlbumData_2.xml')
 jloAlbum_plist = os.path.join (albumData_dir, 'jloAlbumData.xml')
 purgAlbum_plist = os.path.join (albumData_dir, 'purgAlbumData.xml')
 
+JSON_DATA_DIR = '/Users/ostwald/devel/python/iPhoto/data/json/'
+
+LIB_XLS_MAP = {
+	'media_1': 'mediaAlbumData_1',
+	'media_2': 'mediaAlbumData_2',
+	'purg': 'purgAlbumData',
+	'video': 'videoStorageData',
+	'jlo': 'jloAlbumData',
+    'mtSherman': 'MtShermanAlbumData',
+    'pack161' : 'Pack161AlbumData'
+}
 
 
 def getTime(s):
@@ -29,7 +42,8 @@ def getTime(s):
 	:return:
 	"""
 	# return time.strptime(s,"%Y-%m-%d")
-
+	if type(s) == type(datetime.datetime.now()):
+		return s
 	formats = [
 		"%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y",
 		'%Y-%m-%d %H:%M:%S' # appletime
@@ -43,6 +57,21 @@ def getTime(s):
 			# print 'WARN: could not parse date string: %s' % s
 			pass
 	raise Exception, "could not parse provided data string: %s" % s
+
+def sTime (date):
+	"""
+	return datetime formatted as "%Y-%m-%d"
+	"""
+	if type(date) == type(''):
+		return getShortDateStr(date)
+	return date.strftime("%Y-%m-%d")
+
+shortDatePat = re.compile ("[\d]{4}-[\d]{2}-[\d]{2}")
+def getShortDateStr (datestr):
+
+	m = shortDatePat.search(datestr)
+	if m:
+		return m.group()
 
 ## from phoshare.applexml
 APPLE_BASE = 978307200 # 2001/1/1
@@ -76,4 +105,4 @@ class IPhotoDict (UserDict):
 		for key in self.keys():
 			print '%s: %s (%s)' % (key, self[key], self[key].__class__.__name__)
 
-print getTime('2006-01-04 13:16:21')
+# print getTime('1997-01-01 00:00:00')

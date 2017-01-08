@@ -7,7 +7,7 @@ from roll import Roll
 from iPhoto import globals
 
 
-class AbstractIPhotoLibrary:
+class IPhotoLibrary_API:
 
 	def __init__ (self):
 		self.name = None
@@ -40,55 +40,6 @@ class AbstractIPhotoLibrary:
 		id = int(rollId)
 		return self.rollMap[id]
 
-	def getItem (self, key):
-		# return IPhotoItem (key, self.items[key].data, self)
-		if self.items.has_key(key):
-			return self.items[key]
-
-	def getItems(self, **args):
-		print 'ARGS - %s' % args
-		startDate = args.has_key('start') and args['start']
-		if type(startDate) == type(""):
-			startDate = globals.getTime(startDate)
-
-		endDate = args.has_key('end') and args['end']
-		if type(endDate) == type(""):
-			endDate = globals.getTime(endDate)
-
-		def accept (item):
-			item_date = globals.getTime(item.date)
-			if startDate and item_date <= startDate:
-				return 0
-			if endDate and item_date > endDate:
-				return 0
-			return 1
-
-		selected = self.getRolls(**args)
-		print '%d rolls selected' % len(selected)
-		ids=[]
-		items=[]
-		for roll in selected:
-			# tag = roll.date < startDate and "before" or "after"
-			print '%s - %s - %s' % (roll.start, roll.id, roll.name)
-
-			roll_items = filter(accept, roll.items)
-			ids += map(str, roll.itemIds)
-			items += roll_items
-
-		print '%d items, %d item_ids' % (len(items), len(ids))
-		return items
-
-	def reportTopLevelKeys (self):
-		print "Top Level keys"
-		for key in self.plist.keys():
-			obj = self.plist[key]
-			print "\t%s (%s)" % (key, obj.__class__.__name__)
-
-	def reportAlbums (self):
-		print ("\nALBUMS")
-
-		for album in self.albums:
-			print '%s (%s)' % (album.name, album.id)
 
 	def getRolls (self, **args):
 		"""
@@ -123,7 +74,73 @@ class AbstractIPhotoLibrary:
 
 		return filter (accept, self.rolls)
 
-	def getRollsOFF (self, startDate, endDate=None):
+
+	def reportRolls (self, rolls=None):
+		print ("\nROLLS")
+		rolls = rolls or self.rolls
+		for roll in rolls:
+			print '- "%s" | %s to %s | id:%s | %s items' % (roll.name,
+			                                                roll.start, roll.end,
+			                                                roll.id, roll.size)
+
+
+	# ITEM stuff
+
+	def getItem (self, key):
+		# return IPhotoItem (key, self.items[key].data, self)
+		if self.items.has_key(key):
+			return self.items[key]
+
+	def getItems(self, **args):
+		# print 'ARGS - %s' % args
+		startDate = args.has_key('start') and args['start']
+		if type(startDate) == type(""):
+			startDate = globals.getTime(startDate)
+
+		endDate = args.has_key('end') and args['end']
+		if type(endDate) == type(""):
+			endDate = globals.getTime(endDate)
+
+		def accept (item):
+			item_date = globals.getTime(item.date)
+			if startDate and item_date <= startDate:
+				return 0
+			if endDate and item_date > endDate:
+				return 0
+			return 1
+
+		selected = self.getRolls(**args)
+		print '%d rolls selected' % len(selected)
+		ids=[]
+		items=[]
+		for roll in selected:
+			# tag = roll.date < startDate and "before" or "after"
+			print '%s - %s - %s' % (roll.start, roll.id, roll.name)
+
+			roll_items = filter(accept, roll.items)
+			ids += map(str, roll.itemIds)
+			items += roll_items
+
+		print 'getItems: %d filtered items/ %d total' % (len(items), len(ids))
+
+		reverse = args.has_key('reverse') and args['reverse']
+		items.sort (key=lambda x:globals.getTime(x.date), reverse=reverse)
+		return items
+
+	def reportTopLevelKeys (self):
+		print "Top Level keys"
+		for key in self.plist.keys():
+			obj = self.plist[key]
+			print "\t%s (%s)" % (key, obj.__class__.__name__)
+
+	def reportAlbums (self):
+		print ("\nALBUMS")
+
+		for album in self.albums:
+			print '%s (%s)' % (album.name, album.id)
+
+
+	def getRolls (self, **args):
 		"""
 		accepts either DateTime objects or strings in form "YYYY-MM-DD"
 		return role that have a start date within specified range
@@ -132,14 +149,17 @@ class AbstractIPhotoLibrary:
 		:param endDate:
 		:return:
 		"""
+		# print 'ARGS - %s' % args
+		startDate = args.has_key('start') and args['start']
 		if type(startDate) == type(""):
 			startDate = globals.getTime(startDate)
 
+		endDate = args.has_key('end') and args['end']
 		if type(endDate) == type(""):
 			endDate = globals.getTime(endDate)
 
 		def accept (roll):
-			if roll.date <= startDate:
+			if startDate and roll.date <= startDate:
 				return 0
 			if endDate and roll.date > endDate:
 				return 0
@@ -150,7 +170,9 @@ class AbstractIPhotoLibrary:
 				tag = accept (roll) and "in" or "out"
 				print '%s - %s' % (roll.date, tag)
 
+
 		return filter (accept, self.rolls)
+
 
 	def reportRolls (self, rolls=None):
 		print ("\nROLLS")

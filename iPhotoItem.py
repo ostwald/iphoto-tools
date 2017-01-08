@@ -158,6 +158,11 @@ class IPhotoItemRecord (TabDelimitedRecord, IPhotoItem_API):
 		for attr in globals.IPHOTO_ITEM_ATTRS:
 			setattr(self, attr, self[attr])
 
+	def asJson (self, keys=globals.IPHOTO_ITEM_ATTRS):
+		data = {}
+		for key in keys:
+			data[key] = self[key]
+		return data
 
 
 if __name__ == '__main__':

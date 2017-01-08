@@ -53,6 +53,7 @@ class Roll_API (IPhotoDict):
 		return the date of the last item
 		"""
 		id = self.itemIds[-1] # can we depend on being sorted?
+		item = self.getItem(id)
 		return self.getItem(id).date
 			
 	def getItemByFileName (self, filename):
@@ -193,7 +194,7 @@ class RollRecord (TabDelimitedRecord, Roll_API):
 
 
 if __name__ == '__main__':
-	path = '/Users/ostwald/tmp/iPhotoLibrary_XLS_Database/jloAlbumData/rolls/42606.txt'
+	path = globals.REPO_BASE + '/jloAlbumData/rolls/42606.txt'
 	reader = RollItemsReader(path)
 	print '%d read' % len(reader.itemIds)
 	for id in reader.itemIds:
